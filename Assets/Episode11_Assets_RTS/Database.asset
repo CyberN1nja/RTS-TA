@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e0494c37c20db94e994c1fad78446de, type: 3}
+  m_Name: Database
+  m_EditorClassIdentifier: 
+  objectsData:
+  - <Name>k__BackingField: Command Center
+    <ID>k__BackingField: 0
+    <thisBuildingType>k__BackingField: 1
+    description: 
+    <Size>k__BackingField: {x: 3, y: 3}
+    <Prefab>k__BackingField: {fileID: 896119511670471487, guid: 7cc36cd85ce23a74da09eb13004f2c7c,
+      type: 3}
+    <resouceRequirements>k__BackingField:
+    - resource: 0
+      amount: 100
+    <buildDependency>k__BackingField: 00000000
+    <benefits>k__BackingField: []
+  - <Name>k__BackingField: PowerPlant
+    <ID>k__BackingField: 1
+    <thisBuildingType>k__BackingField: 2
+    description: 
+    <Size>k__BackingField: {x: 3, y: 3}
+    <Prefab>k__BackingField: {fileID: 1084677084474269020, guid: 72dad397c7057b94fbe1370591968e62,
+      type: 3}
+    <resouceRequirements>k__BackingField:
+    - resource: 0
+      amount: 100
+    <buildDependency>k__BackingField: 01000000
+    <benefits>k__BackingField: []
+  - <Name>k__BackingField: SupplyCenter
+    <ID>k__BackingField: 2
+    <thisBuildingType>k__BackingField: 2
+    description: 
+    <Size>k__BackingField: {x: 4, y: 5}
+    <Prefab>k__BackingField: {fileID: 5532964603006131780, guid: 36acb2fb186eab8409f62e20d5e9d30e,
+      type: 3}
+    <resouceRequirements>k__BackingField:
+    - resource: 0
+      amount: 100
+    <buildDependency>k__BackingField: 01000000
+    <benefits>k__BackingField: []
