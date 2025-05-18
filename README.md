@@ -52,6 +52,3 @@ Game ini adalah implementasi dari game Real-Time Strategy dengan fitur yang komp
 - **Kursor Dinamis**: Kursor berubah tergantung konteks interaksi (gerak, serang, dll).
 
 ---
-
-## Penulis
-Muhammad Rangga Ridjali
