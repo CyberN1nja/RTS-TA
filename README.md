@@ -53,4 +53,4 @@ Game ini adalah implementasi dari game Real-Time Strategy dengan fitur yang komp
 ---
 
 ## Penulis
-Nama Kamu
+Muhammad Rangga Ridjali
