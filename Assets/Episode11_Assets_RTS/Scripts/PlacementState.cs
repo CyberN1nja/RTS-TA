@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -32,12 +32,12 @@ public class PlacementState : IBuildingState
 
         selectedObjectIndex = database.objectsData.FindIndex(data => data.ID == ID);
 
-
-
         if (selectedObjectIndex > -1)
         {
-            previewSystem.StartShowingPlacementPreview(database.objectsData[selectedObjectIndex].Prefab,
-                database.objectsData[selectedObjectIndex].Size);
+            previewSystem.StartShowingPlacementPreview(
+                database.objectsData[selectedObjectIndex].Prefab,
+                database.objectsData[selectedObjectIndex].Size
+            );
         }
         else
         {
@@ -52,71 +52,88 @@ public class PlacementState : IBuildingState
 
     public void OnAction(Vector3Int gridPosition)
     {
-        // Checking if we can place this item (position not occupied)
+        Debug.Log("[PlacementState] OnAction dipanggil di posisi grid: " + gridPosition);
+
         bool placementValidity = CheckPlacementValidity(gridPosition, selectedObjectIndex);
-        if (placementValidity == false)
+        if (!placementValidity)
         {
+            Debug.LogWarning("[PlacementState] Invalid placement!");
             return;
         }
 
-        int index = objectPlacer.PlaceObject(database.objectsData[selectedObjectIndex].Prefab, grid.CellToWorld(gridPosition));
+        GameObject prefab = database.objectsData[selectedObjectIndex].Prefab;
+
+        if (prefab == null)
+        {
+            Debug.LogError("[PlacementState] Prefab NULL untuk ID: " + database.objectsData[selectedObjectIndex].ID);
+            return;
+        }
+
+        // ✅ Pastikan kita bersihkan data lama jika ada
+        RemovePreviousObjectData(gridPosition);
+
+        // ✅ Tempatkan objek
+        int index = objectPlacer.PlaceObject(prefab, grid.CellToWorld(gridPosition));
 
         ResourceManager.Instance.DecreaseResourcesBasedOnRequirement(database.objectsData[selectedObjectIndex]);
 
         BuildingType buildingType = database.objectsData[selectedObjectIndex].thisBuildingType;
         ResourceManager.Instance.UpdateBuildingChanged(buildingType, true, new Vector3());
 
-        // If this id is a floor id, then its a floor data, else its a furniture data
-        // GridData selectedData = GetAllFloorIDs().Contains(database.objectsData[selectedObjectIndex].ID) ? floorData : furnitureData;
-
+        // ✅ Tambahkan data ke Grid
         GridData selectedData = floorData;
-
-        selectedData.AddObjectAt(gridPosition,
+        selectedData.AddObjectAt(
+            gridPosition,
             database.objectsData[selectedObjectIndex].Size,
             database.objectsData[selectedObjectIndex].ID,
-            index);
+            index
+        );
 
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
     }
 
-    // When you have more floor objects add their id here
-    private List<int> GetAllFloorIDs()
+    // 🧹 Membersihkan data sebelumnya di grid (jika ada)
+    private void RemovePreviousObjectData(Vector3Int position)
     {
-        return new List<int> { 11 }; // These are all the ids of floor items - For now its only the grass
+        floorData.RemoveObjectAt(position);
+        furnitureData.RemoveObjectAt(position);
     }
 
     private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIndex)
     {
-        // GridData selectedData = GetAllFloorIDs().Contains(database.objectsData[selectedObjectIndex].ID) ? floorData : furnitureData;
-
         GridData selectedData = floorData;
+        Vector2Int size = database.objectsData[selectedObjectIndex].Size;
 
-        if (!selectedData.CanPlaceObjectAt(gridPosition, database.objectsData[selectedObjectIndex].Size))
+        // ✅ Cek GridData
+        bool canPlace = selectedData.CanPlaceObjectAt(gridPosition, size);
+        if (!canPlace)
         {
+            Debug.LogWarning("[CheckPlacementValidity] Tidak bisa tempatkan karena GridData menolak posisi.");
             return false;
         }
 
+        // ✅ Cek Collider (Unit/Enemy)
         Vector3 worldPosition = grid.CellToWorld(gridPosition);
-        Collider[] colliders = Physics.OverlapBox(worldPosition, new Vector3(0.5f, 0.5f, 0.5f), Quaternion.identity);
+        int layerMask = LayerMask.GetMask("Obstacle"); // Pastikan Unit/Enemy ada di layer ini
+        Vector3 boxHalfExtents = new Vector3(0.4f, 0.5f, 0.4f);
 
+        Collider[] colliders = Physics.OverlapBox(worldPosition, boxHalfExtents, Quaternion.identity, layerMask);
         foreach (var collider in colliders)
         {
+            Debug.Log("[CheckPlacementValidity] Collider ditemukan: " + collider.name + " (tag: " + collider.tag + ")");
             if (collider.CompareTag("Unit") || collider.CompareTag("Enemy"))
             {
+                Debug.LogWarning("[CheckPlacementValidity] Tabrakan dengan tag Unit/Enemy.");
                 return false;
             }
         }
 
         return true;
-
-        //return selectedData.CanPlaceObjectAt(gridPosition, database.objectsData[selectedObjectIndex].Size);
     }
 
     public void UpdateState(Vector3Int gridPosition)
     {
-        // Show the player if he can place the item
         bool placementValidity = CheckPlacementValidity(gridPosition, selectedObjectIndex);
-
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), placementValidity);
     }
 }

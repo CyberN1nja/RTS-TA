@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7495800287881130682}
   - component: {fileID: -1158531978825371385}
   m_Layer: 10
-  m_Name: Command Center
+  m_Name: CommandCenter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

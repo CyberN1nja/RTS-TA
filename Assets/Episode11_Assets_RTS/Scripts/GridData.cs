@@ -36,24 +36,34 @@ public class GridData
 
     public bool CanPlaceObjectAt(Vector3Int gridPosition, Vector2Int objectSize)
     {
-        List<Vector3Int> positionToOccupy = CalculatePositions(gridPosition, objectSize);
-        foreach (var pos in positionToOccupy)
+        for (int x = 0; x < objectSize.x; x++)
         {
-            if (placedObjects.ContainsKey(pos))
+            for (int y = 0; y < objectSize.y; y++)
             {
-                return false;
+                Vector3Int pos = new Vector3Int(gridPosition.x + x, gridPosition.y, gridPosition.z + y);
+                if (placedObjects.ContainsKey(pos))
+                {
+                    return false; // sudah terisi
+                }
             }
         }
-        return true;
+        return true; // semua kosong
     }
 
-    internal void RemoveObjectAt(Vector3Int gridPosition)
+
+    public void RemoveObjectAt(Vector3Int gridPosition)
     {
-        foreach (var pos in placedObjects[gridPosition].occupiedPositions)
+        if (placedObjects.ContainsKey(gridPosition))
         {
-            placedObjects.Remove(pos);
+            placedObjects.Remove(gridPosition);
+            Debug.Log("[GridData] Berhasil menghapus objek di posisi: " + gridPosition);
+        }
+        else
+        {
+            Debug.Log("[GridData] Tidak ada data di posisi: " + gridPosition + " untuk dihapus.");
         }
     }
+
 
     internal int GetRepresentationIndex(Vector3Int gridPosition)
     {

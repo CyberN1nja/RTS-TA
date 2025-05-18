@@ -1,68 +1,133 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 public class Unit : MonoBehaviour, IDamageable
 {
+    [Header("Health Settings")]
+    public float unitMaxHealth = 100f;
     private float unitHealth;
-    public float unitMaxHealth;
-
     public HealthTracker healthTracker;
 
-    Animator animator;
-    NavMeshAgent navMeshAgent;
+    [Header("Components")]
+    private Animator animator;
+    private NavMeshAgent navMeshAgent;
+
+    private bool isDead = false;
 
     void Start()
     {
-        UnitSelectionManager.Instance.allUnitList.Add(gameObject);
+        // Register unit to selection manager
+        if (UnitSelectionManager.Instance != null)
+        {
+            UnitSelectionManager.Instance.allUnitList.Add(gameObject);
+        }
 
         unitHealth = unitMaxHealth;
         UpdateHealthUI();
 
-        animator = GetComponent<Animator>();    
+        animator = GetComponent<Animator>();
         navMeshAgent = GetComponent<NavMeshAgent>();
-        Debug.Log( "ini animator yang di pakaii" + animator.runtimeAnimatorController.name);
-    }
 
-    private void OnDestroy()
-    {
-        UnitSelectionManager.Instance.allUnitList.Remove(gameObject);
-       
-    }
-
-    private void UpdateHealthUI()
-    {
-        healthTracker.UpdateSliderValue(unitHealth, unitMaxHealth);
-
-        if (unitHealth <= 0)
+        if (animator == null || navMeshAgent == null)
         {
-            // Dying logic 
+            Debug.LogError("Missing Animator or NavMeshAgent on " + gameObject.name);
+        }
 
-            // Destruction  or Dying Animation 
+        if (healthTracker == null)
+        {
+            healthTracker = GetComponentInChildren<HealthTracker>();
+            if (healthTracker == null)
+                Debug.LogWarning("HealthTracker not found in Unit: " + gameObject.name);
+        }
 
-            // Dying sound Effect 
+        if (animator?.runtimeAnimatorController != null)
+        {
+            Debug.Log("Animator in use: " + animator.runtimeAnimatorController.name);
+        }
+    }
 
-            Destroy(gameObject);
+    private void Update()
+    {
+        if (isDead || navMeshAgent == null || animator == null) return;
+
+        // 🛡️ Safe check before accessing NavMeshAgent distance
+        if (navMeshAgent.isOnNavMesh)
+        {
+            bool isMoving = navMeshAgent.remainingDistance > navMeshAgent.stoppingDistance;
+            animator.SetBool("isMoving", isMoving);
+        }
+        else
+        {
+            animator.SetBool("isMoving", false); // fallback
         }
     }
 
     public void TakeDamage(int damageToInflict)
     {
+        if (isDead) return;
+
         unitHealth -= damageToInflict;
         UpdateHealthUI();
     }
 
-    private void Update()
+    private void UpdateHealthUI()
     {
-        if (navMeshAgent.remainingDistance > navMeshAgent.stoppingDistance)
+        if (healthTracker != null)
         {
-            animator.SetBool("isMoving", true);
+            healthTracker.UpdateSliderValue(unitHealth, unitMaxHealth);
         }
-        else
+
+        if (unitHealth <= 0 && !isDead)
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        isDead = true;
+
+        if (animator != null)
         {
             animator.SetBool("isMoving", false);
+            animator.SetTrigger("die");
+        }
+
+        // 🧠 Play death sound via SoundManager
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayUnitDeathSound();
+        }
+
+        // 🧼 Remove from unit list
+        if (UnitSelectionManager.Instance != null)
+        {
+            UnitSelectionManager.Instance.allUnitList.Remove(gameObject);
+        }
+
+        StartCoroutine(DelayedDestroy());
+    }
+
+    private IEnumerator DelayedDestroy()
+    {
+        float delay = 2f;
+
+        if (SoundManager.Instance != null && SoundManager.Instance.unitDeathSound != null)
+        {
+            delay = SoundManager.Instance.unitDeathSound.length;
+        }
+
+        yield return new WaitForSeconds(delay);
+        Destroy(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (UnitSelectionManager.Instance != null)
+        {
+            UnitSelectionManager.Instance.allUnitList.Remove(gameObject);
         }
     }
 }

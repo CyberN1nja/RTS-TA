@@ -29,6 +29,10 @@ public class SoundManager : MonoBehaviour
     public AudioClip buildingConstructionSound;
     public AudioClip buildingDestructionSound;
 
+    [Header("Unit Death")]
+    public AudioClip unitDeathSound;
+
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -100,6 +104,20 @@ public class SoundManager : MonoBehaviour
 
         unitCurrentPoolIndex = (unitCurrentPoolIndex + 1) % poolSize;
     }
+
+    public void PlayUnitDeathSound()
+    {
+        if (unitDeathSound == null) return;
+
+        var channel = unitVoiceChannelPool[unitCurrentPoolIndex];
+
+        if (!channel.isPlaying)
+        {
+            channel.PlayOneShot(unitDeathSound);
+            unitCurrentPoolIndex = (unitCurrentPoolIndex + 1) % poolSize;
+        }
+    }
+
 
     public void PlayUnitCommandSound()
     {

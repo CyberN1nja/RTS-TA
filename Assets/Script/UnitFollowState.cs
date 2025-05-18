@@ -26,25 +26,37 @@ public class UnitFollowState : StateMachineBehaviour
         if (attackController.targetToAttack == null)
         {
             animator.SetBool("isFollowing", false);
-            return; // keluar supaya tidak lanjut
+            return;
         }
 
-        // Jika target ada dan unit tidak sedang dikomando untuk gerak bebas → kejar target
-        if (unitMovement.isCommandedToMove == false)
+        // Jika unit tidak sedang dikomando untuk bebas gerak
+        if (!unitMovement.isCommandedToMove)
         {
-            agent.SetDestination(attackController.targetToAttack.position);
-            animator.transform.LookAt(attackController.targetToAttack);
-
-            float distanceFromTarget = Vector3.Distance(attackController.targetToAttack.position, animator.transform.position);
-            if (distanceFromTarget < attackingDistance)
+            // ✅ Cek aman sebelum SetDestination
+            if (agent != null && agent.isOnNavMesh)
             {
-                agent.SetDestination(animator.transform.position);
-                animator.SetBool("isAttacking", true); // masuk ke state attack
+                agent.SetDestination(attackController.targetToAttack.position);
+                animator.transform.LookAt(attackController.targetToAttack);
+
+                float distanceFromTarget = Vector3.Distance(
+                    attackController.targetToAttack.position,
+                    animator.transform.position
+                );
+
+                if (distanceFromTarget < attackingDistance)
+                {
+                    agent.SetDestination(animator.transform.position);
+                    animator.SetBool("isAttacking", true);
+                }
+            }
+            else if (agent != null && !agent.isOnNavMesh)
+            {
+                Debug.LogWarning("[UnitFollowState] Agent belum berada di atas NavMesh! Posisi: " + agent.transform.position);
             }
         }
         else
         {
-            // Jika player klik tempat lain → batal follow dan kembali ke idle
+            // Dibatalkan oleh klik manual → kembali ke idle
             attackController.targetToAttack = null;
             animator.SetBool("isFollowing", false);
         }

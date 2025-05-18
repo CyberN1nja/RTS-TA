@@ -65,16 +65,31 @@ public class AttackController : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Follow distance 
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, 10f*0.2f);
+        if (isPlayer)
+        {
+            // Follow distance 
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, 10f * 0.2f);
 
-        // Attack Distance
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, 1f);
+            // Attack Distance
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, 1f);
 
-        // Stop Attack Distance
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, 1.2f);
+            // Stop Attack Distance
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(transform.position, 1.2f);
+        }
+        else
+        {
+            // === Gizmo untuk ENEMY ===
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, 35f * 0.2f); // follow range
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, 1f); // attack range
+
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.position, 1.2f); // stop attack
+        }
     }
 }

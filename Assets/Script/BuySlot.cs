@@ -54,6 +54,7 @@ public class BuySlot : MonoBehaviour
 
         ObjectData objectData = DatabaseManager.Instance.databaseSO.objectsData[databaseItemID];
 
+
         bool requirmentMet = true;
 
         foreach (BuildRequirement req in objectData.resouceRequirements)

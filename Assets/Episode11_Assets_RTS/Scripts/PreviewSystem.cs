@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PreviewSystem : MonoBehaviour
 {
@@ -21,9 +22,18 @@ public class PreviewSystem : MonoBehaviour
     }
     public void StartShowingPlacementPreview(GameObject prefab, Vector2Int size)
     {
-        previewObject = Instantiate(prefab);
+        // Gunakan posisi awal yang valid di NavMesh, misalnya mouse position atau offset ke atas
+        Vector3 startPosition = new Vector3(0, 10f, 0); // jauh dari bawah tanah
+
+        if (NavMesh.SamplePosition(startPosition, out var hit, 10f, NavMesh.AllAreas))
+        {
+            startPosition = hit.position;
+        }
+
+        previewObject = Instantiate(prefab, startPosition, Quaternion.identity);
         PreparePreview(previewObject);
     }
+
 
     internal void StartShowingRemovePreview()
     {
@@ -32,6 +42,12 @@ public class PreviewSystem : MonoBehaviour
 
     private void PreparePreview(GameObject previewObject)
     {
+        NavMeshAgent agent = previewObject.GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.enabled = false;
+        }
+
         // Change the materials of the prefab (and its children) to semi-transparent
 
         Renderer[] renderers = previewObject.GetComponentsInChildren<Renderer>();

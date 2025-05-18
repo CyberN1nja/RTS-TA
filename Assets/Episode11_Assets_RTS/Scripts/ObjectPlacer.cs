@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,7 +15,12 @@ public class ObjectPlacer : MonoBehaviour
         newObject.transform.position = position;
 
         // Enable different things for example activate the obstical
-        newObject.GetComponent<Constructable>().ConstructableWasPlaced(position);
+        Constructable constructable = newObject.GetComponent<Constructable>();
+        if (constructable != null)
+        {
+            constructable.ConstructableWasPlaced(position);
+        }
+
 
         // Storing the positions that are now occupied
         placedGameObjects.Add(newObject);

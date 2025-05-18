@@ -112,7 +112,21 @@ public class PowerManager : MonoBehaviour
 
     public void PlayPowerInsufficientSound()
     {
+        if (powerAudioSource == null)
+        {
+            Debug.LogError("[PowerManager] AudioSource is null! Cannot play sound.");
+            return;
+        }
+
+        if (powerInsufficientClip == null)
+        {
+            Debug.LogWarning("[PowerManager] powerInsufficientClip is not assigned.");
+            return;
+        }
+
         powerAudioSource.PlayOneShot(powerInsufficientClip);
+
     }
+
 
 }

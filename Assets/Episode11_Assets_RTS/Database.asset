@@ -49,3 +49,15 @@ MonoBehaviour:
       amount: 100
     <buildDependency>k__BackingField: 01000000
     <benefits>k__BackingField: []
+  - <Name>k__BackingField: InfantryUnit
+    <ID>k__BackingField: 3
+    <thisBuildingType>k__BackingField: 0
+    description: 
+    <Size>k__BackingField: {x: 4, y: 5}
+    <Prefab>k__BackingField: {fileID: 2217486666697324292, guid: 40999b6464d6d2e46a2eee063dc5fb47,
+      type: 3}
+    <resouceRequirements>k__BackingField:
+    - resource: 0
+      amount: 100
+    <buildDependency>k__BackingField: 00000000
+    <benefits>k__BackingField: []
