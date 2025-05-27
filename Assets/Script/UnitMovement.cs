@@ -12,7 +12,9 @@ public class UnitMovement : MonoBehaviour
 
     public bool isCommandedToMove;
 
-    private DirectionIndicator directionIndicator;
+    DirectionIndicator directionIndicator;
+
+    public bool allowManualInput = true;
 
     private void Start()
     {
@@ -23,6 +25,8 @@ public class UnitMovement : MonoBehaviour
 
     private void Update()
     {
+        if (!allowManualInput) return;
+
         // Deteksi klik kanan untuk gerakkan unit
         if (Input.GetMouseButtonDown(1) && IsMovingPossible())
         {

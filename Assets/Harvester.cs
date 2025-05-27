@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class Harvester : MonoBehaviour
 {
@@ -10,23 +11,52 @@ public class Harvester : MonoBehaviour
 
     public float maxCapacity = 10f; // Max carrying capacity
 
-    public float currentCapacity = 0f; // Current resource load
+    //public float currentCapacity = 0f; // Current resource load
+    
     private NavMeshAgent agent;
     private Animator animator;
     private bool isDepositing = false; // Tracks if currently in Depositing state
+
+    public Slider capacitySlider;
+
+    private float _currentCapacity;
+
+    public ResourceType currentResourceType;
+
+    public float CurrentCapacity
+    {
+        get => _currentCapacity;
+        set
+        {
+            _currentCapacity = Math.Clamp(value, 0f, maxCapacity);
+            UpdateSlider();
+        }
+    }
+
+    private void UpdateSlider()
+    {
+        if (capacitySlider != null)
+        {
+            float normalized = CurrentCapacity / maxCapacity;
+            float scaled = normalized * 10f;
+            capacitySlider.value = Mathf.Round(scaled); 
+        }
+    }
 
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+
+        currentResourceType = ResourceType.None;
     }
 
     void Update()
     {
         // Update Animator parameters
         animator.SetBool("hasAssignedNode", assignedNode != null);
-        animator.SetBool("isFull", currentCapacity >= maxCapacity);
-        animator.SetBool("isNotEmpty", currentCapacity > 0);
+        animator.SetBool("isFull", CurrentCapacity >= maxCapacity);
+        animator.SetBool("isNotEmpty", CurrentCapacity > 0);
 
         // Check for node depletion
         if (assignedNode != null && assignedNode.GetComponent<ResourceNode>().IsDepleted)
@@ -60,14 +90,17 @@ public class Harvester : MonoBehaviour
 
         if (assignedNode != null && !assignedNode.GetComponent<ResourceNode>().IsDepleted)
         {
+            ResourceNode node = assignedNode.GetComponent<ResourceNode>();
+            currentResourceType = node.resourceType;
+
             // Simulate harvesting
-            assignedNode.GetComponent<ResourceNode>().Harvest(harvestAmountPerSecond * Time.deltaTime);
-            currentCapacity += harvestAmountPerSecond * Time.deltaTime;
+            node.Harvest(harvestAmountPerSecond * Time.deltaTime);
+            CurrentCapacity += harvestAmountPerSecond * Time.deltaTime;
 
             // Clamp capacity
-            if (currentCapacity > maxCapacity)
+            if (CurrentCapacity > maxCapacity)
             {
-                currentCapacity = maxCapacity;
+                CurrentCapacity = maxCapacity;
             }
         }
     }
@@ -83,22 +116,24 @@ public class Harvester : MonoBehaviour
 
     private System.Collections.IEnumerator WaitInDepositingState()
     {
-        float tempCapacity = currentCapacity;
+        float tempCapacity = CurrentCapacity;
 
-        while (currentCapacity > 0f)
+        while (CurrentCapacity > 0f)
         {
-            currentCapacity -= 1 * Time.deltaTime;
+            CurrentCapacity -= 1 * Time.deltaTime;
 
             // Ensure currentCapacity doesn't go below 0
-            if (currentCapacity < 0f)
+            if (CurrentCapacity < 0f)
             {
-                currentCapacity = 0f;
+                CurrentCapacity = 0f;
             }
 
             yield return null; // Wait for the next frame
         }
 
-        ResourceManager.Instance.IncreaseResource(ResourceManager.ResourcesType.Credits, ConvertResourcesIntoCredits(tempCapacity));
+        
+
+        HandleResourceDeposit(tempCapacity, currentResourceType);
 
         isDepositing = false;
 
@@ -108,12 +143,20 @@ public class Harvester : MonoBehaviour
         {
             animator.SetTrigger("doneDepositing");
         }
-
+        currentResourceType = ResourceType.None;
     }
 
-    private int ConvertResourcesIntoCredits(float tempCapacity)
+    private void HandleResourceDeposit(float tempCapacity, ResourceType currentResourceType)
     {
-        return ((int)tempCapacity * ResourceManager.Instance.creditsPerKiloSpice);
+        switch (currentResourceType)
+        {
+            case ResourceType.Oil:
+                ResourceManager.Instance.IncreaseResource(ResourceType.Oil, (int)tempCapacity);
+                return;
+            case ResourceType.Gold:
+                ResourceManager.Instance.IncreaseResource(ResourceType.Credits, ((int)tempCapacity * ResourceManager.CREDITS_PER_KILO_GOLD));
+                return;
+        }
     }
 
     private void OnTriggerEnter(Collider other) // Use onTriggerStay instead to check if the agent stopped moving.

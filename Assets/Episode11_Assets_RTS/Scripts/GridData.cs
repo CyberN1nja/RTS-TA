@@ -9,9 +9,9 @@ public class GridData
 
     public void AddObjectAt(Vector3Int gridPosition, Vector2Int objectSize, int Id, int placedObjectIndex)
     {
-        List<Vector3Int> positionToOccuply = CalculatePositions(gridPosition, objectSize);
-        PlacementData data = new PlacementData(positionToOccuply, Id, placedObjectIndex);
-        foreach (var pos in positionToOccuply)
+        List<Vector3Int> positionToOccupy = CalculatePositions(gridPosition, objectSize);
+        PlacementData data = new PlacementData(positionToOccupy, Id, placedObjectIndex);
+        foreach (var pos in positionToOccupy)
         {
             if (placedObjects.ContainsKey(pos))
             {
@@ -28,7 +28,7 @@ public class GridData
         {
             for (int y = 0; y < objectSize.y; y++)
             {
-                returnVal1.Add(gridPosition + new Vector3Int(x,0,y));
+                returnVal1.Add(gridPosition + new Vector3Int(x, 0, y));
             }
         }
         return returnVal1;
@@ -50,13 +50,17 @@ public class GridData
         return true; // semua kosong
     }
 
-
     public void RemoveObjectAt(Vector3Int gridPosition)
     {
-        if (placedObjects.ContainsKey(gridPosition))
+        if (placedObjects.TryGetValue(gridPosition, out var data))
         {
-            placedObjects.Remove(gridPosition);
-            Debug.Log("[GridData] Berhasil menghapus objek di posisi: " + gridPosition);
+            foreach (var pos in data.occupiedPositions)
+            {
+                placedObjects.Remove(pos);
+                Debug.Log("[GridData] Menghapus posisi: " + pos);
+            }
+
+            Debug.Log("[GridData] Objek dihapus sepenuhnya dari grid.");
         }
         else
         {
@@ -64,15 +68,13 @@ public class GridData
         }
     }
 
-
     internal int GetRepresentationIndex(Vector3Int gridPosition)
     {
-        if (placedObjects.ContainsKey(gridPosition) == false)
+        if (!placedObjects.ContainsKey(gridPosition))
             return -1;
         return placedObjects[gridPosition].PlacedObjectIndex;
     }
 }
-
 
 public class PlacementData
 {

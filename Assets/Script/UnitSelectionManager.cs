@@ -132,7 +132,19 @@ public class UnitSelectionManager : MonoBehaviour
                             Harvester harvester = unit.GetComponent<Harvester>();
                             if (harvester != null)
                             {
-                                harvester.assignedNode = node;
+                                if (harvester.currentResourceType == ResourceType.None || 
+                                    harvester.currentResourceType == resourceNode.resourceType)
+                                {
+                                    harvester.assignedNode = node;
+                                }
+                                else
+                                {
+                                    UnitMovement unitMovement = harvester.GetComponent<UnitMovement>();
+                                    unitMovement.allowManualInput = false;
+                                    harvester.MoveTo(harvester.supplyCenter);
+
+                                    StartCoroutine(ReenableManualInputNextFrame(unitMovement));
+                                }
                             }
                         }
                     }
@@ -143,6 +155,12 @@ public class UnitSelectionManager : MonoBehaviour
         } 
 
         CursorSelector();
+    }
+
+    private IEnumerator ReenableManualInputNextFrame(UnitMovement unitMovement)
+    {
+        yield return null;
+        unitMovement.allowManualInput = true;
     }
 
     private bool OnlyHarvestersSelected()
