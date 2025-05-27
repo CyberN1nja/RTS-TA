@@ -12,52 +12,46 @@ Game ini adalah implementasi dari game Real-Time Strategy dengan fitur yang komp
 - Mengelola daya bangunan
 - Bertempur dan mempertahankan wilayah
 
+
 ---
 
 ## 🚀 Fitur Utama
 
 ### 🎯 Kontrol Unit
-
-- **Pemilihan Unit**: Pemain dapat memilih satu atau beberapa unit dengan klik dan drag.
-- **Highlight & Marker**: Unit terpilih ditandai secara visual dan menunjukkan lokasi perintah dengan marker.
-- **Perintah Gerak & Ikuti**: Unit dapat mengikuti target atau diarahkan ke lokasi tertentu menggunakan sistem navigasi (_NavMesh_).
-- **Serangan Musuh**: Unit dapat diperintahkan untuk menyerang unit musuh yang terdeteksi.
+- Pemilihan unit (klik tunggal & drag)
+- Highlight dan marker posisi
+- Perintah follow target
+- Serangan ke unit musuh
 
 ### 💥 Pertempuran dan Kesehatan
-
-- **Attack & Damage**: Sistem serangan antar-unit dengan pengurangan HP.
-- **Bar Kesehatan Dinamis**: Tiap unit memiliki health bar yang berubah secara real-time.
-- **Destruction**: Unit hancur dan dihapus dari game saat HP habis.
+- Sistem attack & damage
+- Bar HP dinamis
+- Unit hancur saat HP = 0
 
 ### 🏗️ Sistem Bangunan
-
-- **Penempatan & Validasi**: Bangunan dapat diputar dan ditempatkan dengan sistem pratinjau dan validasi.
-- **Sistem Grid**: Penempatan bangunan mengikuti grid untuk keteraturan basis.
-- **Progress Konstruksi**: Bangunan tidak langsung selesai, membutuhkan pekerja untuk membangun secara bertahap.
-- **Penjualan Bangunan**: Bangunan dapat dijual kembali dengan refund sebagian sumber daya.
+- Penempatan dengan preview & validasi
+- Sistem grid dan rotasi bangunan
+- Progres konstruksi & pekerja bangunan
+- Penjualan bangunan (refund sebagian resource)
 
 ### ⚡ Manajemen Daya
-
-- **Produksi & Konsumsi Energi**: Bangunan tertentu menghasilkan dan menggunakan energi.
-- **UI Daya**: Informasi total daya tersedia dan terpakai ditampilkan secara real-time.
-- **Shutdown Otomatis**: Bangunan akan dinonaktifkan jika daya tidak mencukupi.
+- Bangunan menghasilkan/mengkonsumsi daya
+- UI total power tersedia & terpakai
+- Shutdown otomatis jika kekurangan daya
 
 ### ⛏️ Pengumpulan Sumber Daya
-
-- **Produksi Pasif**: Beberapa bangunan menghasilkan resource otomatis berdasarkan lokasi.
-- **Unit Pekerja**: Unit pekerja dapat menambang dan menyetor hasil ke bangunan penyimpanan.
-- **Inventaris Pekerja**: Setiap pekerja memiliki kapasitas angkut terbatas.
-- **UI Resource**: Sumber daya ditampilkan dengan HUD yang real-time.
+- Produksi pasif oleh bangunan
+- Penambangan oleh unit pekerja
+- Inventaris pekerja dan penyetoran
+- UI sumber daya real-time
 
 ### 🔊 Audio & UX
-
-- **Sound Manager**: Sistem terpusat untuk mengatur efek suara game.
-- **Efek Kontekstual**: Efek suara disesuaikan dengan aksi (bangun, serang, dll).
-- **Kamera Bebas**: Kamera dapat digerakkan dengan WASD atau panah.
-- **Kursor Dinamis**: Kursor berubah tergantung konteks interaksi (gerak, serang, dll).
+- Sistem Sound Manager
+- Efek suara aksi (bangun, serang, dll)
+- Kamera dinamis dan batas viewport
+- Kursor kontekstual
 
 ---
 
 ## Penulis
-
 Nama Kamu
