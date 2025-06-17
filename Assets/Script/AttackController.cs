@@ -28,14 +28,22 @@ public class AttackController : MonoBehaviour
         // deteksi player penambahan
         if (!isPlayer && other.CompareTag("Unit") && targetToAttack == null)
         {
+            Debug.Log("[AttackController] Enemy mendeteksi unit: " + other.name);
             targetToAttack = other.transform;
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
+        if (!isPlayer && other.CompareTag("Unit") && targetToAttack == null)
+        {
+            Debug.Log("[Enemy] Deteksi Unit dalam jangkauan lewat TriggerStay: " + other.name);
+            targetToAttack = other.transform;
+        }
+
         if (isPlayer && other.CompareTag("Enemy") && targetToAttack == null)
         {
+            Debug.Log("[Unit] Deteksi Enemy dalam jangkauan lewat TriggerStay: " + other.name);
             targetToAttack = other.transform;
         }
     }
@@ -83,7 +91,7 @@ public class AttackController : MonoBehaviour
         {
             // === Gizmo untuk ENEMY ===
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, 35f * 0.2f); // follow range
+            Gizmos.DrawWireSphere(transform.position, 30f * 0.2f); // follow range
 
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, 1f); // attack range

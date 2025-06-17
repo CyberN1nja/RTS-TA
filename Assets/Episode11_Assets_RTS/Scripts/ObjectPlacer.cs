@@ -10,22 +10,26 @@ public class ObjectPlacer : MonoBehaviour
 
     public int PlaceObject(GameObject prefab, Vector3 position)
     {
-        // We instantiate the prefab into the cell
+        Debug.Log($"[ObjectPlacer] Menempatkan objek {prefab.name} di {position}");
+
         GameObject newObject = Instantiate(prefab);
         newObject.transform.position = position;
 
-        // Enable different things for example activate the obstical
         Constructable constructable = newObject.GetComponent<Constructable>();
         if (constructable != null)
         {
             constructable.ConstructableWasPlaced(position);
         }
 
-
-        // Storing the positions that are now occupied
         placedGameObjects.Add(newObject);
 
         return placedGameObjects.Count - 1;
+    }
+
+
+    internal GameObject PlaceObjectReturnGO(GameObject prefab, Vector3 vector3)
+    {
+        throw new NotImplementedException();
     }
 
     internal void RemoveObjectAt(int gameObjectIndex)

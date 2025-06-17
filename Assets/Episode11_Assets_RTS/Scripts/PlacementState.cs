@@ -93,18 +93,24 @@ public class PlacementState : IBuildingState
     }
 
     // 🧹 Membersihkan data sebelumnya di grid (jika ada)
-    private void RemovePreviousObjectData(Vector3Int position)
+    private void RemovePreviousObjectData(Vector3Int gridPosition)
     {
-        floorData.RemoveObjectAt(position);
-        furnitureData.RemoveObjectAt(position);
+        if (floorData.HasObjectAt(gridPosition))
+        {
+            floorData.RemoveObjectAt(gridPosition);
+        }
+        else
+        {
+            Debug.Log("[PlacementState] Tidak ada objek sebelumnya untuk dihapus di posisi: " + gridPosition);
+        }
     }
+
 
     private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIndex)
     {
         GridData selectedData = floorData;
         Vector2Int size = database.objectsData[selectedObjectIndex].Size;
 
-        // ✅ Cek GridData
         bool canPlace = selectedData.CanPlaceObjectAt(gridPosition, size);
         if (!canPlace)
         {
@@ -112,24 +118,43 @@ public class PlacementState : IBuildingState
             return false;
         }
 
-        // ✅ Cek Collider (Unit/Enemy)
+        // Tambahan: Cek apakah ini area yang valid untuk unit (misal tag-nya "SpawnArea")
         Vector3 worldPosition = grid.CellToWorld(gridPosition);
-        int layerMask = LayerMask.GetMask("Obstacle"); // Pastikan Unit/Enemy ada di layer ini
+        Collider[] hits = Physics.OverlapBox(worldPosition, new Vector3(0.5f, 0.5f, 0.5f));
+        bool foundSpawnArea = false;
+
+        foreach (var hit in hits)
+        {
+            if (hit.CompareTag("SpawnArea")) // pastikan GameObject area hijau diberi tag ini
+            {
+                foundSpawnArea = true;
+                break;
+            }
+        }
+
+        if (!foundSpawnArea)
+        {
+            Debug.LogWarning("[CheckPlacementValidity] Hanya bisa spawn di area bertag 'SpawnArea'");
+            return false;
+        }
+
+        // Cek tumpang tindih dengan Unit/Enemy
+        int layerMask = LayerMask.GetMask("Obstacle");
         Vector3 boxHalfExtents = new Vector3(0.4f, 0.5f, 0.4f);
 
         Collider[] colliders = Physics.OverlapBox(worldPosition, boxHalfExtents, Quaternion.identity, layerMask);
         foreach (var collider in colliders)
         {
-            Debug.Log("[CheckPlacementValidity] Collider ditemukan: " + collider.name + " (tag: " + collider.tag + ")");
             if (collider.CompareTag("Unit") || collider.CompareTag("Enemy"))
             {
-                Debug.LogWarning("[CheckPlacementValidity] Tabrakan dengan tag Unit/Enemy.");
+                Debug.LogWarning("[CheckPlacementValidity] Tabrakan dengan Unit/Enemy.");
                 return false;
             }
         }
 
         return true;
     }
+
 
     public void UpdateState(Vector3Int gridPosition)
     {

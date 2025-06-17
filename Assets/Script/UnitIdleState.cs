@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class UnitIdleState : StateMachineBehaviour
@@ -17,11 +18,11 @@ public class UnitIdleState : StateMachineBehaviour
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         // check if there is anvilable state target
-        if(attackController.targetToAttack != null)
+        if (attackController.targetToAttack != null)
         {
-            // transition to follow state //
+            // transition to follow state
             animator.SetBool("isFollowing", true);
-
         }
-    } 
+
+    }
 }

@@ -8,7 +8,7 @@ public class UnitAttackState : StateMachineBehaviour
 {
     NavMeshAgent agent;
     AttackController attackController;
-    public float stopAttackingDistance = 1.2f;
+    public float stopAttackingDistance = 3f;
 
     public float attackRate = 2f;
     public float attackTimer;
@@ -20,16 +20,34 @@ public class UnitAttackState : StateMachineBehaviour
         attackController = animator.GetComponent<AttackController>();
         attackController.SetAttackMaterial();
         attackController.muzzleEffect.gameObject.SetActive(true);
-        
+        Debug.Log($"[UnitAttackState] OnStateEnter: {animator.name}, Instance ID: {animator.GetInstanceID()}");
+
     }
 
     public override void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        if (attackController.targetToAttack != null && animator.transform.GetComponent<UnitMovement>().isCommandedToMove == false)
+        Debug.Log("[ENEMY ATTACK STATE] Aktif - " + animator.name);
+
+        // Periksa apakah UnitMovement ada, untuk keperluan pengecekan player
+        bool canAttack = true;
+
+        if (animator.TryGetComponent<UnitMovement>(out var movement))
         {
+            // Jika unit dikendalikan player dan sedang bergerak, jangan menyerang
+            canAttack = !movement.isCommandedToMove;
+        }
+
+        if (attackController.targetToAttack != null && canAttack)
+        {
+            if (attackController.targetToAttack == null)
+            {
+                animator.SetBool("isAttacking", false);
+                return;
+            }
+
             LookAtTarget();
-            // Keep moving towards enemy 
-            // agent.SetDestination(attackController.targetToAattack.position);
+            // Bisa aktifkan jika ingin bergerak sambil menyerang:
+            // agent.SetDestination(attackController.targetToAttack.position);
 
             if (attackTimer <= 0)
             {
@@ -41,18 +59,25 @@ public class UnitAttackState : StateMachineBehaviour
                 attackTimer -= Time.deltaTime;
             }
 
-            // Should unit still attack 
-            float distanceFromTarget = Vector3.Distance(attackController.targetToAttack.position, animator.transform.transform.position);
+            // Apakah masih dalam jarak serang?
+            float distanceFromTarget = Vector3.Distance(
+                attackController.targetToAttack.position,
+                animator.transform.position
+            );
+
+            Debug.Log("[UnitAttackState] Jarak ke target: " + distanceFromTarget);
+
             if (distanceFromTarget > stopAttackingDistance || attackController.targetToAttack == null)
             {
-                animator.SetBool("isAttacking", false); // move to follow state
+                animator.SetBool("isAttacking", false); // kembali ke follow
             }
-        } 
+        }
         else
         {
-            animator.SetBool("isAttacking", false); // move to follow state
+            animator.SetBool("isAttacking", false); // kembali ke follow
         }
     }
+
 
     private void Attack()
     {
@@ -60,7 +85,7 @@ public class UnitAttackState : StateMachineBehaviour
 
         SoundManager.Instance.PlayInfantryAttackSound();
 
-
+        Debug.Log("[ENEMY] Menyerang " + attackController.targetToAttack?.name);
 
         var damageable = attackController.targetToAttack.GetComponent<IDamageable>();
         if (damageable != null)

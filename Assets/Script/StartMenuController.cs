@@ -29,26 +29,20 @@ public class StartMenuController : MonoBehaviour
 
     public void OnStartClick()
     {
-        // Matikan kamera menu
+        Time.timeScale = 1f; // Penting untuk menghidupkan kembali game jika sebelumnya di-pause
+
         if (menuCamera != null)
             menuCamera.SetActive(false);
-
-        // Aktifkan kamera gameplay
         if (gameplayCamera != null)
             gameplayCamera.SetActive(true);
-
-        // Matikan menu UI
         if (startMenuPanel != null)
             startMenuPanel.SetActive(false);
-
-        // Aktifkan elemen gameplay
         if (gameplayElements != null)
             gameplayElements.SetActive(true);
-
-        // Stop background music
         if (menuMusic != null)
             menuMusic.GetComponent<MenuMusic>().StopMusic();
     }
+
 
     public void OnExitClick()
     {

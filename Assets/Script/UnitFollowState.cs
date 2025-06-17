@@ -7,7 +7,7 @@ public class UnitFollowState : StateMachineBehaviour
 {
     AttackController attackController;
     NavMeshAgent agent;
-    public float attackingDistance = 1f;
+    public float attackingDistance = 1.3f;
 
     // Dipanggil saat masuk ke state Follow
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
@@ -18,21 +18,19 @@ public class UnitFollowState : StateMachineBehaviour
     }
 
     // Dipanggil setiap frame saat berada di state Follow
-    override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    public override void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         UnitMovement unitMovement = animator.transform.GetComponent<UnitMovement>();
 
-        // Jika tidak ada target → kembali ke idle
         if (attackController.targetToAttack == null)
         {
             animator.SetBool("isFollowing", false);
+            animator.SetBool("isAttacking", false); // tambah ini agar aman
             return;
         }
 
-        // Jika unit tidak sedang dikomando untuk bebas gerak
         if (!unitMovement.isCommandedToMove)
         {
-            // ✅ Cek aman sebelum SetDestination
             if (agent != null && agent.isOnNavMesh)
             {
                 agent.SetDestination(attackController.targetToAttack.position);
@@ -45,6 +43,7 @@ public class UnitFollowState : StateMachineBehaviour
 
                 if (distanceFromTarget < attackingDistance)
                 {
+                    Debug.Log("[ENEMY FOLLOW] Masuk ke jarak serang: " + distanceFromTarget);
                     agent.SetDestination(animator.transform.position);
                     animator.SetBool("isAttacking", true);
                 }
@@ -52,13 +51,24 @@ public class UnitFollowState : StateMachineBehaviour
             else if (agent != null && !agent.isOnNavMesh)
             {
                 Debug.LogWarning("[UnitFollowState] Agent belum berada di atas NavMesh! Posisi: " + agent.transform.position);
+
+                NavMeshHit hit;
+                if (NavMesh.SamplePosition(agent.transform.position, out hit, 2.0f, NavMesh.AllAreas))
+                {
+                    agent.Warp(hit.position);
+                    Debug.Log("[UnitFollowState] Agent dipindah ke NavMesh di posisi: " + hit.position);
+                }
+                else
+                {
+                    Debug.LogWarning("[UnitFollowState] Tidak ditemukan NavMesh di dekat posisi: " + agent.transform.position);
+                }
             }
         }
         else
         {
-            // Dibatalkan oleh klik manual → kembali ke idle
             attackController.targetToAttack = null;
             animator.SetBool("isFollowing", false);
         }
     }
+
 }

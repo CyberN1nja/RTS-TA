@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,7 +21,7 @@ public class PowerManager : MonoBehaviour
 
     private AudioSource powerAudioSource;
 
-    private void Awake()
+    void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -31,10 +30,12 @@ public class PowerManager : MonoBehaviour
         else
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject); // <- ini mencegah objek hancur saat pindah scene
         }
 
         powerAudioSource = gameObject.AddComponent<AudioSource>();
     }
+
 
     public void AddPower(int amount)
     {
@@ -112,9 +113,9 @@ public class PowerManager : MonoBehaviour
 
     public void PlayPowerInsufficientSound()
     {
-        if (powerAudioSource == null)
+        if (this == null || powerAudioSource == null)
         {
-            Debug.LogError("[PowerManager] AudioSource is null! Cannot play sound.");
+            Debug.LogWarning("[PowerManager] Instance or AudioSource sudah null. Tidak bisa memainkan suara.");
             return;
         }
 
@@ -125,8 +126,9 @@ public class PowerManager : MonoBehaviour
         }
 
         powerAudioSource.PlayOneShot(powerInsufficientClip);
-
     }
+
+
 
 
 }

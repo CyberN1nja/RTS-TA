@@ -6,8 +6,8 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance { get; set; }
 
-    [Header ("Infantry")]
-    private AudioSource infantryAttacChannel;
+    [Header("Infantry")]
+    private AudioSource infantryAttackChannel;
     public AudioClip infantryAttackClip;
 
     [Header("Unit")]
@@ -31,7 +31,7 @@ public class SoundManager : MonoBehaviour
 
     [Header("Unit Death")]
     public AudioClip unitDeathSound;
-
+    private AudioSource unitDeathChannel;
 
     private void Awake()
     {
@@ -44,38 +44,50 @@ public class SoundManager : MonoBehaviour
             Instance = this;
         }
 
-        infantryAttacChannel = gameObject.AddComponent<AudioSource>();
+        // Infantry Attack
+        infantryAttackChannel = CreateAudioSource("InfantryAttackChannel");
 
-        destructionBuildingChannel = gameObject.AddComponent<AudioSource>();
+        // Building channels
+        destructionBuildingChannel = CreateAudioSource("DestructionBuildingChannel");
+        extraBuildingChannel = CreateAudioSource("ExtraBuildingChannel");
 
-        constructionBuildingChannelPool = new AudioSource[3];
-
+        constructionBuildingChannelPool = new AudioSource[poolSize];
         for (int i = 0; i < poolSize; i++)
         {
-            constructionBuildingChannelPool[i] = gameObject.AddComponent<AudioSource>();
+            constructionBuildingChannelPool[i] = CreateAudioSource($"ConstructionChannel_{i}");
         }
 
-        extraBuildingChannel = gameObject.AddComponent<AudioSource>();
-
+        // Unit voice pool
         unitVoiceChannelPool = new AudioSource[poolSize];
-
         for (int i = 0; i < poolSize; i++)
         {
-            unitVoiceChannelPool[i] = gameObject.AddComponent<AudioSource>();
+            unitVoiceChannelPool[i] = CreateAudioSource($"UnitVoiceChannel_{i}");
         }
+
+        // Dedicated death channel
+        unitDeathChannel = CreateAudioSource("UnitDeathChannel");
+    }
+
+    private AudioSource CreateAudioSource(string name)
+    {
+        AudioSource source = gameObject.AddComponent<AudioSource>();
+        source.spatialBlend = 0f; // 2D
+        source.playOnAwake = false;
+        source.name = name;
+        return source;
     }
 
     public void PlayInfantryAttackSound()
     {
-        if (infantryAttacChannel != null && !infantryAttacChannel.isPlaying)
+        if (infantryAttackChannel != null && infantryAttackClip != null)
         {
-            infantryAttacChannel.PlayOneShot(infantryAttackClip);
+            infantryAttackChannel.PlayOneShot(infantryAttackClip);
         }
     }
 
     public void PlayBuildingSellingSound()
     {
-        if (extraBuildingChannel != null && !extraBuildingChannel.isPlaying)
+        if (extraBuildingChannel != null && sellingSound != null)
         {
             extraBuildingChannel.PlayOneShot(sellingSound);
         }
@@ -83,14 +95,17 @@ public class SoundManager : MonoBehaviour
 
     public void PlayBuildingConstructionSound()
     {
-        constructionBuildingChannelPool[constructionCurrentPoolIndex].PlayOneShot(buildingConstructionSound);
+        if (buildingConstructionSound == null) return;
 
+        constructionBuildingChannelPool[constructionCurrentPoolIndex].PlayOneShot(buildingConstructionSound);
         constructionCurrentPoolIndex = (constructionCurrentPoolIndex + 1) % poolSize;
     }
 
     public void PlayBuildingDestructionSound()
     {
-        if (destructionBuildingChannel.isPlaying == false)
+        if (buildingDestructionSound == null) return;
+
+        if (!destructionBuildingChannel.isPlaying)
         {
             destructionBuildingChannel.PlayOneShot(buildingDestructionSound);
         }
@@ -98,33 +113,31 @@ public class SoundManager : MonoBehaviour
 
     public void PlayUnitSelectionSound()
     {
+        if (unitSelectionSounds.Length == 0) return;
+
         AudioClip randomClip = unitSelectionSounds[Random.Range(0, unitSelectionSounds.Length)];
-
         unitVoiceChannelPool[unitCurrentPoolIndex].PlayOneShot(randomClip);
+        unitCurrentPoolIndex = (unitCurrentPoolIndex + 1) % poolSize;
+    }
 
+    public void PlayUnitCommandSound()
+    {
+        if (unitCommandSounds.Length == 0) return;
+
+        AudioClip randomClip = unitCommandSounds[Random.Range(0, unitCommandSounds.Length)];
+        unitVoiceChannelPool[unitCurrentPoolIndex].PlayOneShot(randomClip);
         unitCurrentPoolIndex = (unitCurrentPoolIndex + 1) % poolSize;
     }
 
     public void PlayUnitDeathSound()
     {
-        if (unitDeathSound == null) return;
-
-        var channel = unitVoiceChannelPool[unitCurrentPoolIndex];
-
-        if (!channel.isPlaying)
+        if (unitDeathSound == null)
         {
-            channel.PlayOneShot(unitDeathSound);
-            unitCurrentPoolIndex = (unitCurrentPoolIndex + 1) % poolSize;
+            Debug.LogWarning("unitDeathSound belum di-assign!");
+            return;
         }
-    }
 
-
-    public void PlayUnitCommandSound()
-    {
-        AudioClip randomClip = unitCommandSounds[Random.Range(0, unitCommandSounds.Length)];
-
-        unitVoiceChannelPool[unitCurrentPoolIndex].PlayOneShot(randomClip);
-
-        unitCurrentPoolIndex = (unitCurrentPoolIndex + 1) % poolSize;
+        Debug.Log("Memutar unitDeathSound melalui channel khusus");
+        unitDeathChannel.PlayOneShot(unitDeathSound);
     }
 }

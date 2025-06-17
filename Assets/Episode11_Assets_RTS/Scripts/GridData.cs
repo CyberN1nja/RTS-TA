@@ -74,6 +74,11 @@ public class GridData
             return -1;
         return placedObjects[gridPosition].PlacedObjectIndex;
     }
+
+    internal bool HasObjectAt(Vector3Int gridPosition)
+    {
+        return placedObjects.ContainsKey(gridPosition);
+    }
 }
 
 public class PlacementData

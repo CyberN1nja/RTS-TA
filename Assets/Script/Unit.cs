@@ -13,46 +13,51 @@ public class Unit : MonoBehaviour, IDamageable
     [Header("Components")]
     private Animator animator;
     private NavMeshAgent navMeshAgent;
+    private AttackController attackController;
 
     private bool isDead = false;
 
     void Start()
     {
-        // Register unit to selection manager
-        if (UnitSelectionManager.Instance != null)
+        unitHealth = unitMaxHealth;
+
+        attackController = GetComponent<AttackController>();
+        if (attackController == null)
         {
-            UnitSelectionManager.Instance.allUnitList.Add(gameObject);
+            Debug.LogWarning($"[Unit] ⚠️ AttackController tidak ditemukan pada {gameObject.name}. Ini mungkin unit non-tempur.");
         }
 
-        unitHealth = unitMaxHealth;
-        UpdateHealthUI();
+        if (healthTracker == null)
+            healthTracker = GetComponentInChildren<HealthTracker>();
+
+        if (healthTracker != null)
+            healthTracker.UpdateSliderValue(unitHealth, unitMaxHealth);
+
+        if (UnitSelectionManager.Instance != null)
+            UnitSelectionManager.Instance.allUnitList.Add(gameObject);
 
         animator = GetComponent<Animator>();
         navMeshAgent = GetComponent<NavMeshAgent>();
 
         if (animator == null || navMeshAgent == null)
+            Debug.LogWarning("Animator atau NavMeshAgent belum disetel di " + gameObject.name);
+
+        // ✅ Registrasi ke GameManager hanya jika ada AttackController
+        if (GameManager.Instance != null && attackController != null)
         {
-            Debug.LogError("Missing Animator or NavMeshAgent on " + gameObject.name);
+            if (attackController.isPlayer)
+                GameManager.Instance.RegisterPlayerUnit();
+            else
+                GameManager.Instance.RegisterEnemy();
         }
 
-        if (healthTracker == null)
-        {
-            healthTracker = GetComponentInChildren<HealthTracker>();
-            if (healthTracker == null)
-                Debug.LogWarning("HealthTracker not found in Unit: " + gameObject.name);
-        }
-
-        if (animator?.runtimeAnimatorController != null)
-        {
-            Debug.Log("Animator in use: " + animator.runtimeAnimatorController.name);
-        }
+        Debug.Log($"{gameObject.name} terdeteksi. isPlayer = {(attackController != null ? attackController.isPlayer.ToString() : "N/A")}");
     }
 
     private void Update()
     {
         if (isDead || navMeshAgent == null || animator == null) return;
 
-        // 🛡️ Safe check before accessing NavMeshAgent distance
         if (navMeshAgent.isOnNavMesh)
         {
             bool isMoving = navMeshAgent.remainingDistance > navMeshAgent.stoppingDistance;
@@ -60,7 +65,7 @@ public class Unit : MonoBehaviour, IDamageable
         }
         else
         {
-            animator.SetBool("isMoving", false); // fallback
+            animator.SetBool("isMoving", false);
         }
     }
 
@@ -75,9 +80,7 @@ public class Unit : MonoBehaviour, IDamageable
     private void UpdateHealthUI()
     {
         if (healthTracker != null)
-        {
             healthTracker.UpdateSliderValue(unitHealth, unitMaxHealth);
-        }
 
         if (unitHealth <= 0 && !isDead)
         {
@@ -89,23 +92,27 @@ public class Unit : MonoBehaviour, IDamageable
     {
         isDead = true;
 
+        if (GameManager.Instance != null && attackController != null)
+        {
+            if (attackController.isPlayer)
+                GameManager.Instance.UnregisterPlayerUnit();
+            else
+                GameManager.Instance.UnregisterEnemy();
+        }
+
         if (animator != null)
         {
             animator.SetBool("isMoving", false);
             animator.SetTrigger("die");
         }
 
-        // 🧠 Play death sound via SoundManager
         if (SoundManager.Instance != null)
-        {
             SoundManager.Instance.PlayUnitDeathSound();
-        }
 
-        // 🧼 Remove from unit list
         if (UnitSelectionManager.Instance != null)
-        {
             UnitSelectionManager.Instance.allUnitList.Remove(gameObject);
-        }
+
+        Debug.Log($"💀 {gameObject.name} mati. isPlayer = {attackController?.isPlayer}");
 
         StartCoroutine(DelayedDestroy());
     }
@@ -115,9 +122,7 @@ public class Unit : MonoBehaviour, IDamageable
         float delay = 2f;
 
         if (SoundManager.Instance != null && SoundManager.Instance.unitDeathSound != null)
-        {
             delay = SoundManager.Instance.unitDeathSound.length;
-        }
 
         yield return new WaitForSeconds(delay);
         Destroy(gameObject);
@@ -126,8 +131,6 @@ public class Unit : MonoBehaviour, IDamageable
     private void OnDestroy()
     {
         if (UnitSelectionManager.Instance != null)
-        {
             UnitSelectionManager.Instance.allUnitList.Remove(gameObject);
-        }
     }
 }
